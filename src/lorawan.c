@@ -32,7 +32,12 @@
 
 #include "board.h"
 #include "rtc-board.h"
+#if defined sx1276
 #include "sx1276-board.h"
+#elif defined sx126x
+#include "sx126x-board.h"
+#include "pico/board-config.h"
+#endif
 
 #include "../../periodic-uplink-lpp/firmwareVersion.h"
 #include "Commissioning.h"
@@ -199,24 +204,25 @@ const char* lorawan_default_dev_eui(char* dev_eui)
     return dev_eui;
 }
 
-int lorawan_init(const struct lorawan_sx1276_settings* sx1276_settings, LoRaMacRegion_t region)
+int lorawan_init(const struct lorawan_sx12xx_settings* sx12xx_settings, LoRaMacRegion_t region)
 {
     EepromMcuInit();
 
     RtcInit();
+#if defined sx1276
     SpiInit(
         &SX1276.Spi,
-        (SpiId_t)((sx1276_settings->spi.inst == spi0) ? 0 : 1),
-        sx1276_settings->spi.mosi /*MOSI*/,
-        sx1276_settings->spi.miso /*MISO*/,
-        sx1276_settings->spi.sck /*SCK*/, 
+        (SpiId_t)((sx12xx_settings->spi.inst == spi0) ? 0 : 1),
+        sx12xx_settings->spi.mosi /*MOSI*/,
+        sx12xx_settings->spi.miso /*MISO*/,
+        sx12xx_settings->spi.sck /*SCK*/,
         NC
     );
 
-    SX1276.Spi.Nss.pin = sx1276_settings->spi.nss;
-    SX1276.Reset.pin = sx1276_settings->reset;
-    SX1276.DIO0.pin = sx1276_settings->dio0;
-    SX1276.DIO1.pin = sx1276_settings->dio1;
+    SX1276.Spi.Nss.pin = sx12xx_settings->spi.nss;
+    SX1276.Reset.pin = sx12xx_settings->reset;
+    SX1276.DIO0.pin = sx12xx_settings->dio0;
+    SX1276.DIO1.pin = sx12xx_settings->dio1;
 
     SX1276IoInit();
 
@@ -224,6 +230,35 @@ int lorawan_init(const struct lorawan_sx1276_settings* sx1276_settings, LoRaMacR
     if (SX1276Read(REG_LR_VERSION) != 0x12) {
         return -1;
     }
+
+#elif defined sx126x
+    Gpio_t gpio_busy;
+    Gpio_t gpio_dio1;
+    Gpio_t gpio_reset;
+    Gpio_t gpio_nss;
+
+    Spi_t spi1_t;
+
+    gpio_busy.pin = RADIO_BUSY;
+    gpio_dio1.pin = RADIO_DIO_1;
+    gpio_reset.pin = RADIO_RESET;
+    gpio_nss.pin = RADIO_NSS;
+    spi1_t.Nss = gpio_nss;
+// raspberry pi pico spi1
+    spi1_t.SpiId = SPI_2;
+
+    SX126x.BUSY = gpio_busy;
+    SX126x.DIO1 = gpio_dio1;
+    SX126x.Reset = gpio_reset;
+    SX126x.Spi = spi1_t;
+    SpiInit( &SX126x.Spi, SPI_2, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
+
+    SX126x.Spi.Nss.pin = sx12xx_settings->spi.nss;
+    SX126x.Reset.pin = sx12xx_settings->reset;
+    SX126x.DIO1.pin = sx12xx_settings->dio1;
+
+    SX126xIoInit();
+#endif
 
     LmHandlerParams.Region = region;
 
@@ -242,20 +277,20 @@ int lorawan_init(const struct lorawan_sx1276_settings* sx1276_settings, LoRaMacR
     return 0;
 }
 
-int lorawan_init_abp(const struct lorawan_sx1276_settings* sx1276_settings, LoRaMacRegion_t region, const struct lorawan_abp_settings* abp_settings)
+int lorawan_init_abp(const struct lorawan_sx12xx_settings* sx12xx_settings, LoRaMacRegion_t region, const struct lorawan_abp_settings* abp_settings)
 {
     AbpSettings = abp_settings;
     OtaaSettings = NULL;
 
-    return lorawan_init(sx1276_settings, region);
+    return lorawan_init(sx12xx_settings, region);
 }
 
-int lorawan_init_otaa(const struct lorawan_sx1276_settings* sx1276_settings, LoRaMacRegion_t region, const struct lorawan_otaa_settings* otaa_settings)
+int lorawan_init_otaa(const struct lorawan_sx12xx_settings* sx12xx_settings, LoRaMacRegion_t region, const struct lorawan_otaa_settings* otaa_settings)
 {
     AbpSettings = NULL;
     OtaaSettings = otaa_settings;
 
-    return lorawan_init(sx1276_settings, region);
+    return lorawan_init(sx12xx_settings, region);
 }
 
 int lorawan_join()
