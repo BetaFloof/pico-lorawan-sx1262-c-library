@@ -15,18 +15,19 @@
 #include "pico/lorawan.h"
 #include "tusb.h"
 
-// pin configuration for SX1276 radio module
-const struct lorawan_sx1276_settings sx1276_settings = {
-    .spi = {
-        .inst = PICO_DEFAULT_SPI_INSTANCE,
-        .mosi = PICO_DEFAULT_SPI_TX_PIN,
-        .miso = PICO_DEFAULT_SPI_RX_PIN,
-        .sck  = PICO_DEFAULT_SPI_SCK_PIN,
-        .nss = 8
-    },
-    .reset = 9,
-    .dio0 = 7,
-    .dio1 = 10
+// pin configuration for SX12xx radio module
+const struct lorawan_sx12xx_settings sx12xx_settings = {
+        .spi = {
+                .inst = spi1,
+                .mosi = 11,
+                .miso = 12,
+                .sck  = 10,
+                .nss  = 3
+        },
+        .reset = 15,
+        .busy = 2,
+        // .dio0  = 7,
+        .dio1  = 20
 };
 
 // LoRaWAN region to use, full list of regions can be found at:
@@ -45,7 +46,7 @@ int main( void )
 
     // initialize the LoRaWAN stack
     printf("Initilizating LoRaWAN ... ");
-    if (lorawan_init(&sx1276_settings, LORAWAN_REGION) < 0) {
+    if (lorawan_init(&sx12xx_settings, LORAWAN_REGION) < 0) {
         printf("failed!!!\n");
         while (1) {
             tight_loop_contents();
