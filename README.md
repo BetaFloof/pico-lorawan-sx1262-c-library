@@ -1,5 +1,6 @@
 # pico-lorawan-sx1262-c-library
 This fork combines [sandeepmistry/pico-lorawan](https://github.com/sandeepmistry/pico-lorawan) and the changes for the sx1262 board from [siuwahzhong/lorawan-library-for-pico](https://github.com/siuwahzhong/lorawan-library-for-pico).
+
 Additional fixes and improvements will be implemented by myself.
 
 # pico-lorawan
