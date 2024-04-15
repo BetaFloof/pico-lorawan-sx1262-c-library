@@ -3,6 +3,8 @@ This fork combines [sandeepmistry/pico-lorawan](https://github.com/sandeepmistry
 
 Additional fixes and improvements will be implemented by myself.
 
+`git clone --recurse-submodules https://github.com/BetaFloof/pico-lorawan-sx1262-c-library.git`
+
 # pico-lorawan
 Enable LoRaWAN communications on your [Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/) or any RP2040 based board using a [Semtech SX1276 radio module](https://www.semtech.com/apps/product.php?pn=SX1276).
 
